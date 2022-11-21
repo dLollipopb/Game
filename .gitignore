@@ -1,2 +1,6 @@
 Resources
 *.pyc
+dist
+build
+Bin/dist
+Bin/build

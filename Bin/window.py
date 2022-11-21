@@ -2,14 +2,22 @@ import pygame,sys
 from tags import *
 
 class Camera:
-	def __init__(self):
+	def __init__(self,win):
 		self.x=0.0
 		self.y=0.0
-		self.zoom=0.0
+		self.zoom=1.0
+		self.win=win
 		createTag("movable")
 		addTag("movable",self)
+	def getAbsoluteSize(self,size):
+		return size*self.zoom
+	def getWindowPos(self,x,y):
+		return (int((x-self.x)*self.zoom+self.win.w/2.0),int((y-self.y)*self.zoom+self.win.h/2.0))
+	def getAbsolutePos(self,x,y):
+		return (float(x)-self.win.w/2.0)/self.zoom+self.x,(float(y)-self.win.h/2.0)/self.zoom+self.y
 	def drawTexture(self,scr,obj):
-		scr.blit(obj.tex.tex,(int(obj.x-self.x),int(obj.y-self.y)))
+		size=(int(obj.tex.w*self.zoom),int(obj.tex.h*self.zoom))
+		scr.blit(pygame.transform.scale(obj.tex.tex,size),self.getWindowPos(obj.x,obj.y))
 
 class Window:
 	def __init__(self,settings):
@@ -30,14 +38,14 @@ class Window:
 		self.shouldclose=False
 		self.clock=pygame.time.Clock()
 		self.color=(0,0,0)
-		self.camera=Camera()
+		self.camera=Camera(self)
 	def close(self):
 		self.shouldclose=True
 	def loop(self):
 		while not self.shouldclose:
 			dt=self.clock.tick(60)/1000.0
 			for i in tags.simulated:
-				i.run(dt)
+				i.run(dt,self.camera)
 			for i in pygame.event.get():
 				if i.type==pygame.QUIT:
 					self.close()

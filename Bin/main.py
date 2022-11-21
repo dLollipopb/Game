@@ -1,4 +1,4 @@
-import pygame,sys
+import pygame,sys,math
 from settings import settings
 from window import Window
 from tags import *
@@ -6,7 +6,9 @@ from texture import *
 
 win=Window(settings)
 textures=Textures()
-textures.loadFromPath("Resources/Textures")
+textures.loadFromPath("../Resources/Textures/coridors")
+textures.loadFromPath("../Resources/Textures/interface")
+textures.loadFromPath("../Resources/Textures/rooms")
 
 class KeyEscape:
 	def __init__(self):
@@ -90,21 +92,27 @@ class CameraMoving:
 		self.kw=False
 		self.speed=1000.0
 		addTag("keydown",self)
+		addTag("mousedown",self)
 		addTag("keyup",self)
 		addTag("simulated",self)
-	def run(self,dt):
+	def run(self,dt,camera):
 		if self.kd:
-			self.ux+=dt*self.speed
+			self.ux+=dt*self.speed/self.camera.zoom
 		if self.ks:
-			self.uy+=dt*self.speed
+			self.uy+=dt*self.speed/self.camera.zoom
 		if self.ka:
-			self.ux-=dt*self.speed
+			self.ux-=dt*self.speed/self.camera.zoom
 		if self.kw:
-			self.uy-=dt*self.speed
+			self.uy-=dt*self.speed/self.camera.zoom
 		self.camera.x+=self.ux*dt
 		self.camera.y+=self.uy*dt
 		self.ux*=0.9
 		self.uy*=0.9
+	def mousedown(self,button):
+		if button==4:
+			self.camera.zoom*=1.1
+		if button==5:
+			self.camera.zoom/=1.1
 	def keydown(self,key):
 		if key==pygame.K_d or key==pygame.K_RIGHT:
 			self.kd=True
@@ -168,7 +176,6 @@ class ConstructionGrid:
 
 class Building:
 	def __init__(self,grid):
-		global constructionGrid
 		self.x=0.0
 		self.y=0.0
 		self.cellsize=160.0
@@ -177,25 +184,37 @@ class Building:
 		self.tex=self.textures[1]
 		addTag("mousedown",self)
 		addTag("draw",self)
+		addTag("simulated",self)
 		self.drawpriority=0
 		self.grid=grid
+	def run(self,dt,camera):
+		mx,my=pygame.mouse.get_pos()
+		mx,my=camera.getAbsolutePos(mx,my)
+		mx=int(mx//self.cellsize)*self.cellsize
+		my=int(my//self.cellsize)*self.cellsize
+		if self.grid.exist(mx/self.cellsize,my/self.cellsize):
+			if self.tex.name!="s_marker_construction_2.png":
+				self.tex=self.textures[2]
+		else:
+			if self.tex.name!="s_marker_construction_1.png":
+				self.tex=self.textures[1]
 	def mousedown(self,button):
-		global constructionGrid
 		if button==1:
 			x,y=self.x/self.cellsize,self.y/self.cellsize
 			if not self.grid.exist(x,y):
-				print "add"
 				room=Room(self.x,self.y)
 				grid.add(x,y,room)
 		if button==3:
 			x,y=self.x/self.cellsize,self.y/self.cellsize
 			if self.grid.exist(x,y):
-				print "remove"
 				grid.remove(x,y)
 	def draw(self,scr,camera):
 		mx,my=pygame.mouse.get_pos()
-		self.x=int((mx+camera.x)/self.cellsize)*self.cellsize
-		self.y=int((my+camera.y)/self.cellsize)*self.cellsize
+		mx,my=camera.getAbsolutePos(mx,my)
+		mx=int(mx//self.cellsize)*self.cellsize
+		my=int(my//self.cellsize)*self.cellsize
+		self.x=mx
+		self.y=my
 		camera.drawTexture(scr,self)
 
 grid=ConstructionGrid()
