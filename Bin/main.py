@@ -20,65 +20,39 @@ class KeyEscape:
 keyesc=KeyEscape()
 addTag("keydown",keyesc)
 
-class Room:
+class ConnectedTile:
+	def update(self,right,down,left,up):
+		tex=self.connectedtiletex
+		if right.__class__==Room:
+			tex+="1"
+		else:
+			tex+="0"
+		if down.__class__==Room:
+			tex+="1"
+		else:
+			tex+="0"
+		if left.__class__==Room:
+			tex+="1"
+		else:
+			tex+="0"
+		if up.__class__==Room:
+			tex+="1"
+		else:
+			tex+="0"
+		self.tex=textures(tex+".png")
+
+class Room(ConnectedTile):
 	def __init__(self,x,y):
 		self.x=x
 		self.y=y
 		self.drawpriority=10
-		self.tex=textures("s_rooms_closed.png")
+		self.connectedtiletex="s_rooms_"
+		self.tex=textures(self.connectedtiletex+"0000.png")
 		addTag("draw",self)
 	def remove(self):
 		delTags(self)
 	def draw(self,scr,camera):
 		camera.drawTexture(scr,self)
-	def update(self,right,down,left,up):
-		side=[right.__class__==Room,down.__class__==Room,left.__class__==Room,up.__class__==Room]
-		if side[0]:
-			if side[1]:
-				if side[2]:
-					if side[3]:
-						self.tex=textures("s_rooms_01_14.png")
-					else:
-						self.tex=textures("s_rooms_01_13.png")
-				else:
-					if side[3]:
-						self.tex=textures("s_rooms_01_10.png")
-					else:
-						self.tex=textures("s_rooms_01_9.png")
-			else:
-				if side[2]:
-					if side[3]:
-						self.tex=textures("s_rooms_01_11.png")
-					else:
-						self.tex=textures("s_rooms_01_4.png")
-				else:
-					if side[3]:
-						self.tex=textures("s_rooms_01_6.png")
-					else:
-						self.tex=textures("s_rooms_01_0.png")
-		else:
-			if side[1]:
-				if side[2]:
-					if side[3]:
-						self.tex=textures("s_rooms_01_12.png")
-					else:
-						self.tex=textures("s_rooms_01_8.png")
-				else:
-					if side[3]:
-						self.tex=textures("s_rooms_01_5.png")
-					else:
-						self.tex=textures("s_rooms_01_1.png")
-			else:
-				if side[2]:
-					if side[3]:
-						self.tex=textures("s_rooms_01_7.png")
-					else:
-						self.tex=textures("s_rooms_01_2.png")
-				else:
-					if side[3]:
-						self.tex=textures("s_rooms_01_3.png")
-					else:
-						self.tex=textures("s_rooms_closed.png")
 
 class CameraMoving:
 	def __init__(self,camera):
