@@ -23,19 +23,19 @@ addTag("keydown",keyesc)
 class ConnectedTile:
 	def update(self,right,down,left,up):
 		tex=self.connectedtiletex
-		if right.__class__==Room:
+		if right.__class__ in self.connectedtypes:
 			tex+="1"
 		else:
 			tex+="0"
-		if down.__class__==Room:
+		if down.__class__ in self.connectedtypes:
 			tex+="1"
 		else:
 			tex+="0"
-		if left.__class__==Room:
+		if left.__class__ in self.connectedtypes:
 			tex+="1"
 		else:
 			tex+="0"
-		if up.__class__==Room:
+		if up.__class__ in self.connectedtypes:
 			tex+="1"
 		else:
 			tex+="0"
@@ -47,6 +47,21 @@ class Room(ConnectedTile):
 		self.y=y
 		self.drawpriority=10
 		self.connectedtiletex="s_rooms_"
+		self.connectedtypes={Room,Coridor}
+		self.tex=textures(self.connectedtiletex+"0000.png")
+		addTag("draw",self)
+	def remove(self):
+		delTags(self)
+	def draw(self,scr,camera):
+		camera.drawTexture(scr,self)
+
+class Coridor(ConnectedTile):
+	def __init__(self,x,y):
+		self.x=x
+		self.y=y
+		self.drawpriority=10
+		self.connectedtiletex="s_coridors_"
+		self.connectedtypes={Room,Coridor}
 		self.tex=textures(self.connectedtiletex+"0000.png")
 		addTag("draw",self)
 	def remove(self):
@@ -157,6 +172,7 @@ class Building:
 		textures("s_marker_construction_1.png"),textures("s_marker_construction_2.png")]
 		self.tex=self.textures[1]
 		addTag("mousedown",self)
+		addTag("keydown",self)
 		addTag("draw",self)
 		addTag("simulated",self)
 		self.drawpriority=0
@@ -172,12 +188,18 @@ class Building:
 		else:
 			if self.tex.name!="s_marker_construction_1.png":
 				self.tex=self.textures[1]
-	def mousedown(self,button):
-		if button==1:
+	def keydown(self,key):
+		if key==pygame.K_1:
 			x,y=self.x/self.cellsize,self.y/self.cellsize
 			if not self.grid.exist(x,y):
 				room=Room(self.x,self.y)
 				grid.add(x,y,room)
+		if key==pygame.K_2:
+			x,y=self.x/self.cellsize,self.y/self.cellsize
+			if not self.grid.exist(x,y):
+				room=Coridor(self.x,self.y)
+				grid.add(x,y,room)
+	def mousedown(self,button):
 		if button==3:
 			x,y=self.x/self.cellsize,self.y/self.cellsize
 			if self.grid.exist(x,y):
